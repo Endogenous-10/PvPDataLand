@@ -2,25 +2,6 @@
 local addonName = "PvPDataLand"
 local addonVersion = "1.0"
 
--- Load the DataStore modules
-local DataStore = LibStub("AceAddon-3.0"):GetAddon("DataStore")
-local DataStore_Achievements = LibStub("AceAddon-3.0"):GetAddon("DataStore_Achievements")
-local DataStore_Agenda = LibStub("AceAddon-3.0"):GetAddon("DataStore_Agenda")
-local DataStore_Characters = LibStub("AceAddon-3.0"):GetAddon("DataStore_Characters")
-local DataStore_Currencies = LibStub("AceAddon-3.0"):GetAddon("DataStore_Currencies")
-local DataStore_Inventory = LibStub("AceAddon-3.0"):GetAddon("DataStore_Inventory")
-local DataStore_Pets = LibStub("AceAddon-3.0"):GetAddon("DataStore_Pets")
-local DataStore_Quests = LibStub("AceAddon-3.0"):GetAddon("DataStore_Quests")
-local DataStore_Reputations = LibStub("AceAddon-3.0"):GetAddon("DataStore_Reputations")
-local DataStore_Stats = LibStub("AceAddon-3.0"):GetAddon("DataStore_Stats")
-local DataStore_Talents = LibStub("AceAddon-3.0"):GetAddon("DataStore_Talents")
-
--- Get the current character key
-local thisChar = UnitName("player") .. " - " .. GetRealmName()
-
--- Get the data from REFlex using the character key
-local pvpData = REFlexDataExtractor:GetPvPData(thisChar)
-
 -- Create a GUI frame using AceGUI
 local AceGUI = LibStub("AceGUI-3.0")
 local frame = AceGUI:Create("Frame")
@@ -36,7 +17,7 @@ modeDropdown:SetList({"2v2", "3v3", "SS", "RBG"})
 modeDropdown:SetValue(1) -- default to 2v2
 modeDropdown:SetCallback("OnValueChanged", function(widget, event, key) -- update the data when the mode changes
   local mode = widget:GetList()[key] -- get the mode name from the key
-  local data = pvpData[mode] -- get the data for that mode
+  local data = {} -- replace this with your data source for PvP data
   updateGUI(data) -- update the GUI with the new data
 end)
 frame:AddChild(modeDropdown)
@@ -97,7 +78,7 @@ SlashCmdList["PVPDATALAND"] = AceConfig.slashCommandHandler
 -- Define a function to initialize the addon
 local function initialize()
   -- Register the addon name and version with DataStore
-  DataStore:RegisterModule(addonName, addonVersion)
+  -- DataStore:RegisterModule(addonName, addonVersion) -- Uncomment this if required
   
   -- Print a welcome message in chat
   print(addonName .. " v" .. addonVersion .. " loaded. Type /pvpdataland or /pdl to toggle the GUI.")
@@ -111,16 +92,16 @@ local function eventHandler(self, event, ...)
       initialize() -- initialize it
       self:UnregisterEvent(event) -- unregister this event handler
     end
-  elseif event == "PLAYER_LOGIN" or event == "REFLEX_LOADED" then -- when the player logs in or REFlex loads
-    local thisChar = UnitName("player") .. " - " .. GetRealmName() -- get the current character key
-    local pvpData = REFlexDataExtractor:GetPvPData(thisChar) -- get the data from REFlex for this character
-    updateGUI(pvpData) -- update the GUI with the data
+  -- elseif event == "PLAYER_LOGIN" or event == "REFLEX_LOADED" then -- Uncomment this if required
+  --   local thisChar = UnitName("player") .. " - " .. GetRealmName() -- get the current character key
+  --   local pvpData = REFlexDataExtractor:GetPvPData(thisChar) -- get the data from REFlex for this character
+  --   updateGUI(pvpData) -- update the GUI with the data
   end
 end
 
 -- Create an event frame to handle loading events
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED") -- register for loading events
-eventFrame:RegisterEvent("PLAYER_LOGIN") -- register for login event
-eventFrame:RegisterEvent("REFLEX_LOADED") -- register for REFlex loaded event
+-- eventFrame:RegisterEvent("PLAYER_LOGIN") -- Uncomment this if required
+-- eventFrame:RegisterEvent("REFLEX_LOADED") -- Uncomment this if required
 eventFrame:SetScript("OnEvent", eventHandler) -- set the event handler function
