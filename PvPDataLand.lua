@@ -1,3 +1,34 @@
+-- PvPDataLand.lua
+-- A World of Warcraft add-on for PvP data analysis
+-- Author: Endogenous-10
+-- Version: 1.0
+
+-- Define slash command
+SLASH_PVPDATA1 = "/pvpdata"
+
+-- Register slash command handler
+SlashCmdList["PVPDATA"] = function(msg)
+  -- Open GUI here
+  local player = game.Players.LocalPlayer -- Get local player
+  local gui = player.PlayerGui.ShopSelection -- Get GUI element
+  gui.Visible = true -- Make GUI visible
+end
+
+-- Get local player
+local player = game.Players.LocalPlayer
+
+-- Get GUI elements
+local button = player.PlayerGui.Shop.Button
+local gui = player.PlayerGui.ShopSelection
+
+-- Open GUI when button is clicked
+button.MouseButton1Down:Connect(function()
+  gui.Visible = true
+  button.Visible = false
+end)
+
+-- Rest of your code below
+
 local ADDON_NAME = "PvPDataLand"
 local ADDON_VERSION = "1.0.0"
 
@@ -348,15 +379,6 @@ local function addMatch(matchData)
     local modeKey = modeDropdown:GetList()[modeDropdownValue]
     updateGUI(pvpData.modes[modeKey])
 end
-
--- Define slash command
-SLASH_PVPDATA1 = "/pvpdata"
-
--- Register slash command handler
-SlashCmdList["PVPDATA"] = function(msg)
-  -- Open GUI here
-end
--- ...
 
 -- Add some debugging messages
 debugMessage("PvPDataLand addon loaded.")
