@@ -7,7 +7,7 @@
 SLASH_PVPDATA1 = "/pvpdata"
 
 -- Register slash command handler
-SlashCmdList["PVPDATA"] = function(msg)
+SlashCmdList["PVPDATAHANDLER"] = function(msg)
   -- Open GUI here
   local player = game.Players.LocalPlayer -- Get local player
   local gui = player.PlayerGui.ShopSelection -- Get GUI element
