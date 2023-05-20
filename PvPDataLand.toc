@@ -4,12 +4,12 @@
 ## Version: 1.0.0
 ## Notes: Track and record PvP statistics
 ## OptionalDeps: REFlex
-## Dependencies: AceComm-3.0
 
 libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0\CallbackHandler-1.0.lua
 libs\Ace3\AceAddon-3.0\AceAddon-3.0.lua
 libs\Ace3\AceConsole-3.0\AceConsole-3.0.lua
+libs\Ace3\AceComm-3.0\AceComm-3.0.lua  -- Add AceComm-3.0 dependency here
 libs\DataStore\DataStore.lua
 libs\DataStore_Achievements\DataStore_Achievements.lua
 libs\DataStore_Agenda\DataStore_Agenda.lua
