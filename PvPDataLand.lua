@@ -349,6 +349,13 @@ local function addMatch(matchData)
     updateGUI(pvpData.modes[modeKey])
 end
 
+-- Define slash command
+SLASH_PVPDATA1 = "/pvpdata"
+
+-- Register slash command handler
+SlashCmdList["PVPDATA"] = function(msg)
+  -- Open GUI here
+end
 -- ...
 
 -- Add some debugging messages
