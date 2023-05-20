@@ -7,7 +7,7 @@
 SLASH_PVPDATA1 = "/pvpdata"
 
 -- Register slash command handler
-SlashCmdList["PVPDATAHANDLER"] = function(msg)
+SlashCmdList["PVPDATA"] = function(msg)
   -- Open GUI here
   local player = game.Players.LocalPlayer -- Get local player
   local gui = player.PlayerGui.ShopSelection -- Get GUI element
@@ -333,25 +333,6 @@ local function updateStats()
         end
     end
 
-    -- Example match data
-    local matchData = {
-        mode = "2v2", -- One of "2v2", "3v3", "RBG", or "SS"
-        result = "win", -- Either "win" or "loss"
-        rating = 1500, -- An integer rating value
-    }
-
-    -- Reset mode-specific data
-    for modeName, modeData in pairs(pvpData.modes) do
-        modeData.matches = {}
-        modeData.stats.wins = 0
-        modeData.stats.losses = 0
-        modeData.stats.currentRating = 0
-        modeData.stats.highestRating = 0
-        modeData.stats.lowestRating = 0
-    end
-
-    -- Add the example match data
-    addMatch(matchData)
 end
 
 -- Add some debugging messages
@@ -388,5 +369,3 @@ SlashCmdList["PVPDATA"] = function()
     debugMessage("Slash command '/pvpdata' called.")
     frame:Show()
 end
-
--- ...
