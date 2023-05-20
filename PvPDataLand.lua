@@ -1,121 +1,126 @@
--- PvPDataLand.lua
-local PvPDataLand = LibStub("AceAddon-3.0"):NewAddon("PvPDataLand", "AceConsole-3.0", "AceEvent-3.0")
+-- Define the addon name and version
+local addonName = "PvPDataLand"
+local addonVersion = "1.0"
+
+-- Load the DataStore modules
+local DataStore = LibStub("AceAddon-3.0"):GetAddon("DataStore")
+local DataStore_Achievements = LibStub("AceAddon-3.0"):GetAddon("DataStore_Achievements")
+local DataStore_Agenda = LibStub("AceAddon-3.0"):GetAddon("DataStore_Agenda")
+local DataStore_Characters = LibStub("AceAddon-3.0"):GetAddon("DataStore_Characters")
+local DataStore_Currencies = LibStub("AceAddon-3.0"):GetAddon("DataStore_Currencies")
+local DataStore_Inventory = LibStub("AceAddon-3.0"):GetAddon("DataStore_Inventory")
+local DataStore_Pets = LibStub("AceAddon-3.0"):GetAddon("DataStore_Pets")
+local DataStore_Quests = LibStub("AceAddon-3.0"):GetAddon("DataStore_Quests")
+local DataStore_Reputations = LibStub("AceAddon-3.0"):GetAddon("DataStore_Reputations")
+local DataStore_Stats = LibStub("AceAddon-3.0"):GetAddon("DataStore_Stats")
+local DataStore_Talents = LibStub("AceAddon-3.0"):GetAddon("DataStore_Talents")
+
+-- Get the current character key
+local thisChar = UnitName("player") .. " - " .. GetRealmName()
+
+-- Get the data from REFlex using the character key
+local pvpData = REFlexDataExtractor:GetPvPData(thisChar)
+
+-- Create a GUI frame using AceGUI
 local AceGUI = LibStub("AceGUI-3.0")
+local frame = AceGUI:Create("Frame")
+frame:SetTitle(addonName .. " v" .. addonVersion)
+frame:SetStatusText("")
+frame:SetLayout("Flow")
+frame:Hide() -- hide the frame by default
 
-local db
+-- Create a dropdown menu to select the game mode
+local modeDropdown = AceGUI:Create("Dropdown")
+modeDropdown:SetLabel("Select game mode:")
+modeDropdown:SetList({"2v2", "3v3", "SS", "RBG"})
+modeDropdown:SetValue(1) -- default to 2v2
+modeDropdown:SetCallback("OnValueChanged", function(widget, event, key) -- update the data when the mode changes
+  local mode = widget:GetList()[key] -- get the mode name from the key
+  local data = pvpData[mode] -- get the data for that mode
+  updateGUI(data) -- update the GUI with the new data
+end)
+frame:AddChild(modeDropdown)
 
-local defaults = {
-    global = {
-        history = {},
-        twovtwo = {},
-        threethree = {},
-        soloshuffle = {},
-        ratedbg = {},
-    }
+-- Create a label to display the data
+local dataLabel = AceGUI:Create("Label")
+dataLabel:SetFullWidth(true)
+dataLabel:SetText("")
+frame:AddChild(dataLabel)
+
+-- Define a function to update the GUI with the data
+local function updateGUI(data)
+  -- Format the data as a string
+  local text = string.format(
+    "Wins: %d\nLosses: %d\nWin rate: %.2f%%\nRating: %d\nHighest rating: %d\n",
+    data.wins,
+    data.losses,
+    data.winRate,
+    data.rating,
+    data.highestRating
+  )
+  -- Set the text of the label
+  dataLabel:SetText(text)
+end
+
+-- Load the AceConfig library
+local AceConfig = LibStub("AceConfig-3.0")
+
+-- Define a table for slash command options using AceConfig syntax
+local options = {
+  name = addonName,
+  handler = PvPDataLand,
+  type = "group",
+  args = {
+    toggle = {
+      type = "execute",
+      name = "Toggle",
+      desc = "Toggle the GUI frame",
+      func = function()
+        if frame:IsVisible() then
+          frame:Hide()
+        else
+          frame:Show()
+        end
+      end,
+    },
+  },
 }
 
-function PvPDataLand:OnInitialize()
-    self.db = LibStub("AceDB-3.0"):New("PvPDataLandDB", defaults, true)
-    db = self.db.global
-    self:RegisterChatCommand("pvpdata", "ChatCommand")
-    self:Print("PvPDataLand loaded!")
+-- Register the slash command options with AceConfig
+AceConfig:RegisterOptionsTable(addonName, options)
 
-    -- Load REFlex data
-    if REFlexDatabase then
-        for characterName, characterData in pairs(REFlexDatabase) do
-            -- Assuming characterData is a table with keys 'twovtwo', 'threethree', 'soloshuffle', 'ratedbg'
-            db.twovtwo[characterName] = characterData.twovtwo
-            db.threethree[characterName] = characterData.threethree
-            db.soloshuffle[characterName] = characterData.soloshuffle
-            db.ratedbg[characterName] = characterData.ratedbg
-        end
-    else
-        self:Print("REFlex addon data is not available.")
-    end
+-- Register a chat command to toggle the GUI frame using AceConfig slash command handler
+SLASH_PVPDATALAND1 = "/pvpdataland"
+SLASH_PVPDATALAND2 = "/pdl"
+SlashCmdList["PVPDATALAND"] = AceConfig.slashCommandHandler
+
+-- Define a function to initialize the addon
+local function initialize()
+  -- Register the addon name and version with DataStore
+  DataStore:RegisterModule(addonName, addonVersion)
+  
+  -- Print a welcome message in chat
+  print(addonName .. " v" .. addonVersion .. " loaded. Type /pvpdataland or /pdl to toggle the GUI.")
 end
 
-function PvPDataLand:ChatCommand(input)
-    if not input or input:trim() == "" then
-        self:CreateGUI()
-    else
-        -- Display the requested data
-        local data = db[input]
-        if data then
-            -- Create a new GUI window to display the data
-            local dataFrame = AceGUI:Create("Frame")
-            dataFrame:SetTitle(input .. " Data")
-            dataFrame:SetStatusText("Data for " .. input)
-            dataFrame:SetLayout("Flow")
-            for key, value in pairs(data) do
-                local label = AceGUI:Create("Label")
-                label:SetText(key .. ": " .. tostring(value))
-                label:SetFullWidth(true)
-                dataFrame:AddChild(label)
-            end
-            -- Register the frame as a special frame so that it is closed when escape is pressed
-            _G["PvPDataLand" .. input .. "Frame"] = dataFrame.frame
-            tinsert(UISpecialFrames, "PvPDataLand" .. input .. "Frame")
-            -- Show the data frame
-            dataFrame:Show()
-        else
-            self:Print("Invalid command. Type /pvpdata for a list of commands.")
-        end
+-- Define an event handler function for loading events
+local function eventHandler(self, event, ...)
+  if event == "ADDON_LOADED" then -- when an addon is loaded
+    local name = ... -- get the addon name
+    if name == addonName then -- if it is this addon
+      initialize() -- initialize it
+      self:UnregisterEvent(event) -- unregister this event handler
     end
+  elseif event == "PLAYER_LOGIN" or event == "REFLEX_LOADED" then -- when the player logs in or REFlex loads
+    local thisChar = UnitName("player") .. " - " .. GetRealmName() -- get the current character key
+    local pvpData = REFlexDataExtractor:GetPvPData(thisChar) -- get the data from REFlex for this character
+    updateGUI(pvpData) -- update the GUI with the data
+  end
 end
 
-function PvPDataLand:CreateGUI()
-    -- Check if AceGUI library is loaded
-    if not AceGUI then
-        self:Print("AceGUI library not loaded.")
-        return
-    end
-
-    -- Create a container frame
-    local frame = AceGUI:Create("Frame")
-    frame:SetTitle("PvP Data Land")
-    frame:SetStatusText("Select a game mode")
-    frame:SetLayout("Flow")
-
-    -- Create four buttons for each game mode
-    local button2v2 = AceGUI:Create("Button")
-    button2v2:SetText("2v2")
-    button2v2:SetWidth(100)
-    button2v2:SetCallback("OnClick", function()
-        self:ChatCommand("twovtwo")
-    end)
-    frame:AddChild(button2v2)
-
-    local button3v3 = AceGUI:Create("Button")
-    button3v3:SetText("3v3")
-    button3v3:SetWidth(100)
-    button3v3:SetCallback("OnClick", function()
-        -- Display the data for 3v3 when the button is clicked
-        self:ChatCommand("threethree")
-    end)
-    frame:AddChild(button3v3)
-
-    local buttonRBG = AceGUI:Create("Button")
-    buttonRBG:SetText("RBG")
-    buttonRBG:SetWidth(100)
-    buttonRBG:SetCallback("OnClick", function()
-        -- Display the data for RBG when the button is clicked
-        self:ChatCommand("ratedbg")
-    end)
-    frame:AddChild(buttonRBG)
-
-    local buttonSS = AceGUI:Create("Button")
-    buttonSS:SetText("SS")
-    buttonSS:SetWidth(100)
-    buttonSS:SetCallback("OnClick", function()
-        -- Display the data for SS when the button is clicked
-        self:ChatCommand("soloshuffle")
-    end)
-    frame:AddChild(buttonSS)
-
-    -- Register the frame as a special frame so that it is closed when escape is pressed
-    _G["PvPDataLandFrame"] = frame.frame
-    tinsert(UISpecialFrames, "PvPDataLandFrame")
-
-    -- Show the frame
-    frame:Show()
-end
+-- Create an event frame to handle loading events
+local eventFrame = CreateFrame("Frame")
+eventFrame:RegisterEvent("ADDON_LOADED") -- register for loading events
+eventFrame:RegisterEvent("PLAYER_LOGIN") -- register for login event
+eventFrame:RegisterEvent("REFLEX_LOADED") -- register for REFlex loaded event
+eventFrame:SetScript("OnEvent", eventHandler) -- set the event handler function
